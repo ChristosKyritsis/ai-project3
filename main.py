@@ -42,17 +42,19 @@ def read_ctr_file(file_path):
             constraints.append(line.strip())
 
 def main():
-    file_path = input("Enter file name: ")
+    varName = input("Enter var file name: ")
+    ctrName = input("Enter ctr file name: ")
+    domName = input("Enter dom file name: ")
 
-    try:
-        read_instance_file(file_path)
-        print("Variables:", variables)
-        print("Structs:", structures)
-        print("Constraints:", constraints)
-    except FileNotFoundError:
-        print(f"File {file_path} not found.")
-    except Exception as e:
-        print(f"Error: {e}")
+    # try:
+    #     read_instance_file(file_path)
+    #     print("Variables:", variables)
+    #     print("Structs:", structures)
+    #     print("Constraints:", constraints)
+    # except FileNotFoundError:
+    #     print(f"File {file_path} not found.")
+    # except Exception as e:
+    #     print(f"Error: {e}")
 
 
     #temp1 = backtracking_search(,,,forward_checking)
