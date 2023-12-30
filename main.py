@@ -1,3 +1,7 @@
+from csp import *
+import time
+
+
 variables = {}
 structures = {}
 constraints = []
@@ -49,6 +53,9 @@ def main():
         print(f"File {file_path} not found.")
     except Exception as e:
         print(f"Error: {e}")
+
+
+    #temp1 = backtracking_search(,,,forward_checking)
 
 if __name__ == "__main__":
     main()
