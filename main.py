@@ -1,4 +1,5 @@
 from csp import *
+import math
 import time
 
 def var_type_file(file_path):
@@ -32,6 +33,28 @@ def ctr_type_file(file_path):
             ctr_data.append((int(vars[0]), int(vars[1]), vars[2], vars[3]))
 
     return ctr_count, ctr_data
+
+
+
+def weighted_degree_heuristic(assignment, csp):
+    unassigned_vars = [var for var in csp.variables if var not in assignment]
+    min = math.inf
+    for var in unassigned_vars:
+        domain = len(csp.domains[var])
+        weight_sum = 0
+        for neighbor in csp.neighbors[var]:
+            if neighbor in unassigned_vars:
+                i = 0
+                for con in csp.clist:
+                    if((con[0] == var and con[1] == neighbor) or (con[0] == neighbor and con[1] == var)):
+                        weight_sum += csp.weights[i]
+                    i += 1
+        if(domain / weight_sum<min):
+            min = domain/weight_sum
+            minvar = var
+    return minvar
+
+
 
 
 def main():
@@ -75,10 +98,20 @@ def main():
     csp_instance = CSP(variables, domains, neighbors, constraints)
 
     begin = time.time()
-    fc = backtracking_search(csp_instance)
+    fc = backtracking_search(csp_instance, unordered_domain_values, inference=forward_checking)
     end = time.time()
     print("Results are: ", fc)
     print(end-begin)
+
+
+    begin = time.time()
+    mac_result = backtracking_search(csp_instance, unordered_domain_values, inference=mac)
+    end = time.time()
+    print("Results are: ", mac_result)
+    print(end-begin)
+
+
+    min_conflicts(CSP)
 
 if __name__ == "__main__":
     main()
