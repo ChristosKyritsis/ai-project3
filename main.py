@@ -23,10 +23,13 @@ def ctr_type_file(file_path):
 
         for line in lines[1:]:
             # Seperating the values of constaints into the two variables, the operator and then the third variable
-            parts = line.strip().split()
-            operator = parts[2]
-            var3 = int(parts[3])
-            ctr_data.append((int(parts[0]), int(parts[1]), operator, var3))
+            vars = line.strip().split()
+            # The order is:
+            # vars[0] is the first variable
+            # vars[1] is the second variable
+            # vars[2] is the operator
+            # vars[3] is the third variable
+            ctr_data.append((int(vars[0]), int(vars[1]), vars[2], vars[3]))
 
     return ctr_count, ctr_data
 
