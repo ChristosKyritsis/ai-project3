@@ -37,19 +37,19 @@ def ctr_type_file(file_path):
 
 
 def myHeuristic(assignment, csp):
-    unassigned_vars = []
+    unassigned_variables = []
     for variable in csp.variables:
         if variable not in assignment:
-            unassigned_vars.append(variable)
+            unassigned_variables.append(variable)
     
     min_val = math.inf
     result = None
-    for var in unassigned_vars:
+    for var in unassigned_variables:
         domain_size = len(csp.domains[var])
         totalWeight = 0
 
         for i, constraint in enumerate(csp.listOfConstraints):
-            if var in constraint and any(n in unassigned_vars for n in constraint):
+            if var in constraint and any(n in unassigned_variables for n in constraint):
                 totalWeight += csp.weight[i]
 
         if totalWeight != 0:
