@@ -30,88 +30,96 @@ def ctr_type_file(file_path):
             # vars[1] is the second variable
             # vars[2] is the operator
             # vars[3] is the third variable
-            ctr_data.append((int(vars[0]), int(vars[1]), vars[2], vars[3]))
+            ctr_data.append((int(vars[0]), int(vars[1]), vars[2], int(vars[3])))
 
     return ctr_count, ctr_data
 
 
 
-def weighted_degree_heuristic(assignment, csp):
-    unassigned_vars = [var for var in csp.variables if var not in assignment]
-    min = math.inf
+def myHeuristic(assignment, csp):
+    unassigned_vars = []
+    for variable in csp.variables:
+        if variable not in assignment:
+            unassigned_vars.append(variable)
+    
+    min_val = math.inf
+    result = None
     for var in unassigned_vars:
-        domain = len(csp.domains[var])
-        weight_sum = 0
-        for neighbor in csp.neighbors[var]:
-            if neighbor in unassigned_vars:
-                i = 0
-                for con in csp.clist:
-                    if((con[0] == var and con[1] == neighbor) or (con[0] == neighbor and con[1] == var)):
-                        weight_sum += csp.weights[i]
-                    i += 1
-        if(domain / weight_sum<min):
-            min = domain/weight_sum
-            minvar = var
-    return minvar
+        domain_size = len(csp.domains[var])
+        totalWeight = 0
 
+        for i, constraint in enumerate(csp.listOfConstraints):
+            if var in constraint and any(n in unassigned_vars for n in constraint):
+                totalWeight += csp.weight[i]
+
+        if totalWeight != 0:
+            value = domain_size/totalWeight
+        else:
+            return math.inf
+        
+        if value < min_val:
+            min_val = value
+            result = var
+            
+    return result
 
 
 
 def main():
 
+    # Collecting the data from each file
+    var_count, var_data = var_type_file('var6-w2.txt')
+    dom_count, dom_data = dom_type_file('dom6-w2.txt')
+    ctr_count, ctr_data = ctr_type_file('ctr6-w2.txt')
     # for each function that reads a file, the argument can be changed to a different one
 
-    var_count, var_data = var_type_file('var11.txt')
-    # print(f"Variable count: {var_count}")
-    # print("Variables:")
-    # for var in var_data:
-    #     print(var)
-  
-
-    dom_count, dom_data = dom_type_file('dom11.txt')
-    # print(f"Domain number: {dom_count}")
-    # print("Domain data: ")
-    # for dom in dom_data:
-    #     print(dom)
-
-    ctr_count, ctr_data = ctr_type_file('ctr6-w2.txt')
-    # print(f"Constraint number: {ctr_count}")
-    # print("Constraints: ")
-    # for ctr in ctr_data:
-    #     print(ctr)
 
     variables = list(range(var_count))
-    domains = {var: list(range(dom_count)) for var in variables}
 
-    neighbors = {var: [v for v in variables if v != var] for var in variables}
+    domains = {}
+    domains = dict((variable, dom_data[dom]) for variable, dom in var_data)
+
+    neighbors = {var: set() for var in range(var_count)}
+    for var1, var2, _, _ in ctr_data:
+        neighbors[var1].add(var2)
+        neighbors[var2].add(var1)
+
 
     def constraints(A, a, B, b):
         # for each one of the parameters in a constraint (var1, var2, condition, var3)
         for var1, var2, operator, var3 in ctr_data:
             if (A == var1 and B == var2) or (A == var2 and B == var1):
                 if operator  == '=':
-                    return abs(var1-var2) == var3
+                    return abs(a-b) == var3
                 elif operator == '>':
-                    return abs(var1-var2) > var3
+                    return abs(a-b) > var3
         return True
     
-    csp_instance = CSP(variables, domains, neighbors, constraints)
-
-    begin = time.time()
-    fc = backtracking_search(csp_instance, unordered_domain_values, inference=forward_checking)
-    end = time.time()
-    print("Results are: ", fc)
-    print(end-begin)
+    csp_instance = CSP(variables, domains, neighbors, constraints, ctr_data)
 
 
-    begin = time.time()
-    mac_result = backtracking_search(csp_instance, unordered_domain_values, inference=mac)
-    end = time.time()
-    print("Results are: ", mac_result)
-    print(end-begin)
+    # Execution of FC
+    begin = time.perf_counter()
+    fc = backtracking_search(csp_instance, myHeuristic, unordered_domain_values, forward_checking)
+    end = time.perf_counter()
+    print("Results for FC are: ", fc)
+    print("FC ended in ", end-begin, " seconds")
 
 
-    min_conflicts(CSP)
+    #Execution of MAC
+    begin = time.perf_counter()
+    mac_result = backtracking_search(csp_instance, myHeuristic, unordered_domain_values, mac)
+    end = time.perf_counter()
+    print("Results for MAC are: ", mac_result)
+    print("MAC ended in ", end-begin, " seconds")
+
+
+    # Execution of min_conflicts
+    begin = time.perf_counter()
+    min_conflicts_result = min_conflicts(csp_instance)
+    end = time.perf_counter()
+    print("Results for Min Conflicts are: ", min_conflicts_result)
+    print("Min Conflicts ended in ", end - begin, " seconds")
 
 if __name__ == "__main__":
     main()

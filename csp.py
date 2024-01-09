@@ -51,7 +51,8 @@ class CSP(search.Problem):
         display(a)              Print a human-readable representation
     """
 
-    def __init__(self, variables, domains, neighbors, constraints):
+    # Added a new parameter ("constraint_data") containing the data from a ctr-type file
+    def __init__(self, variables, domains, neighbors, constraints, constraint_data):
         """Construct a CSP problem. If variables is empty, it becomes domains.keys()."""
         super().__init__(())
         variables = variables or list(domains.keys())
@@ -61,6 +62,12 @@ class CSP(search.Problem):
         self.constraints = constraints
         self.curr_domains = None
         self.nassigns = 0
+
+        #added code
+        self.listOfConstraints = constraint_data
+        self.weight = []
+        for _ in self.listOfConstraints:
+            self.weight.append(1)
 
     def assign(self, var, val, assignment):
         """Add {var: val} to assignment; Discard the old value if any."""
@@ -181,6 +188,13 @@ def AC3(csp, queue=None, removals=None, arc_heuristic=dom_j_up):
         revised, checks = revise(csp, Xi, Xj, removals, checks)
         if revised:
             if not csp.curr_domains[Xi]:
+                # Added code
+                index = 0
+                for constraint in csp.listOfConstraints:
+                    if (constraint[0] == Xi and constraint[1] == Xj) or (constraint[0] == Xj and constraint[1] == Xi):
+                        csp.weight[index] += 1
+                    index += 1
+                    # End of added code
                 return False, checks  # CSP is inconsistent
             for Xk in csp.neighbors[Xi]:
                 if Xk != Xj:
@@ -390,11 +404,19 @@ def forward_checking(csp, var, value, assignment, removals):
                 if not csp.constraints(var, value, B, b):
                     csp.prune(B, b, removals)
             if not csp.curr_domains[B]:
+                # added code
+                index = 0
+                for constraint in csp.listOfConstraints:
+                    if (constraint[0] == var and constraint[1] == B) or (constraint[0] == B and constraint[1] == var):
+                        csp.weight[index] += 1
+                    index += 1
+                #end of added code 
                 return False
     return True
 
 
-def mac(csp, var, value, assignment, removals, constraint_propagation=AC3b):
+# Changed the parameter from AC3b to AC3
+def mac(csp, var, value, assignment, removals, constraint_propagation=AC3):
     """Maintain arc consistency."""
     return constraint_propagation(csp, {(X, var) for X in csp.neighbors[var]}, removals)
 
@@ -430,8 +452,8 @@ def backtracking_search(csp, select_unassigned_variable=first_unassigned_variabl
 # ______________________________________________________________________________
 # Min-conflicts Hill Climbing search for CSPs
 
-
-def min_conflicts(csp, max_steps=100000):
+# Changed the max steps to 100
+def min_conflicts(csp, max_steps=100):
     """Solve a CSP by stochastic Hill Climbing on the number of conflicts."""
     # Generate a complete assignment for all variables (probably with conflicts)
     csp.current = current = {}
@@ -578,7 +600,7 @@ def MapColoringCSP(colors, neighbors):
     specified as a string of the form defined by parse_neighbors."""
     if isinstance(neighbors, str):
         neighbors = parse_neighbors(neighbors)
-    return CSP(list(neighbors.keys()), UniversalDict(colors), neighbors, different_values_constraint)
+    return CSP(list(neighbors.keys()), UniversalDict(colors), neighbors, different_values_constraint, ' ') # Added a fifth parameter
 
 
 def parse_neighbors(neighbors):
